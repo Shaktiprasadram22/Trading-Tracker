@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Tracking</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>Stock Market Tracker</h1>
+        <nav>
+            <a href="#daily-input">Daily Input</a>
+            <a href="#checklist">Checklist</a>
+            <a href="#weekly-summary">Weekly Summary</a>
+            <a href="news.html">Latest Financial News</a> <!-- Link to news page -->
+            <a href="tracking.html">Tracking</a>
+            <!-- Logout link -->
+            <a href="http://localhost:3000/logout">Logout</a>
+            <a href="http://localhost:3000/logout">Login</a>
+        </nav>
+    </header>
+
+    <!-- Daily Input Section -->
+    <section id="daily-input">
+        <h2>Daily Input</h2>
+        <form id="inputForm">
+            <input type="hidden" id="editIndex"> <!-- Hidden field to track if editing an entry -->
+            <label for="date">Date:</label>
+            <input type="date" id="date" required>
+
+            <label for="stock">Stock Symbol:</label>
+            <input type="text" id="stock" required>
+
+            <!-- Volume Inputs -->
+            <label for="volumeMin">Volume Min:</label>
+            <input type="number" id="volumeMin" oninput="updateVolumeLabel()">
+            <p>Selected Volume Range: <span id="volumeLabel"></span></p>
+
+            <!-- New Entry Price field (replacing Indicator) -->
+            <label for="entryPrice">Entry Price:</label>
+            <input type="number" id="entryPrice" step="0.01" required>
+
+            <label for="decision">Buy/Sell Decision:</label>
+            <select id="decision">
+                <option value="Buy">Buy</option>
+                <option value="Sell">Sell</option>
+            </select>
+
+            <label for="stopLoss">Stop Loss:</label>
+            <input type="number" id="stopLoss" step="0.01" required>
+
+            <label for="target">Target:</label>
+            <input type="number" id="target" step="0.01" required>
+
+            <label for="premium">Premium:</label>
+            <input type="text" id="premium" required>
+
+            <label for="putCall">Put/Call:</label>
+            <select id="putCall">
+                <option value="Call">Call</option>
+                <option value="Put">Put</option>
+            </select>
+
+            <label for="success">Success:</label>
+            <select id="success">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+
+            <label for="remark">Remark:</label>
+            <textarea id="remark" rows="4" placeholder="Add your notes or comments here"></textarea>
+
+            <button type="submit">Save Entry</button>
+        </form>
+    </section>
+
+    <!-- Checklist Section -->
+    <section id="checklist">
+        <h2>Daily Checklist</h2>
+        <ul>
+            <li><input type="checkbox" id="newsCheck"> Checked news and stock trends</li>
+            <li><input type="checkbox" id="nseCheck"> Monitored NSE website</li>
+            <li><input type="checkbox" id="filterCheck"> Filtered top stocks based on volume</li>
+            <li><input type="checkbox" id="indicatorCheck"> Applied indicators</li>
+            <li><input type="checkbox" id="decisionCheck"> Made a Buy/Sell decision</li>
+        </ul>
+        <button id="saveChecklist">Save Checklist</button>
+    </section>
+
+    <!-- Weekly Summary Section -->
+    <section id="weekly-summary">
+        <h2>Weekly Summary</h2>
+        <table id="summaryTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Stock</th>
+                    <th>Volume</th>
+                    <th>Entry Price</th>
+                    <th>Decision</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>Premium</th>
+                    <th>Put/Call</th>
+                    <th>Success</th>
+                    <th>Remark</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Records will be added here -->
+            </tbody>
+        </table>
+
+        <!-- Button to trigger success rate analysis -->
+        <button id="analyzeSuccessRate">Analyze Success Rate</button>
+        <p>Your strategy success rate: <span id="successRateDisplay"></span></p>
+    </section>
+
+    <!-- Trading Process Diagram Section -->
+    <section id="dfd-section">
+        <h2>Trading Process Diagram</h2>
+        <img src="pic.png" alt="DFD for trading strategy" style="width:100%; max-width:800px;">
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>Stock Market Tracker - Developed Shakti Prasad Ram @beast</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

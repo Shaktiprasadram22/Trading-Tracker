@@ -1,0 +1,41 @@
+[
+  {
+    "date": "2024-10-21",
+    "stock": "HDFC Bank",
+    "volumeMin": 2770916,
+    "entryPrice": 21,
+    "decision": "Buy",
+    "stopLoss": 12,
+    "target": 32,
+    "premium": "1730",
+    "putCall": "Call",
+    "success": "Yes",
+    "remark": "Target of ₹32 hit, but exited early at ₹25, booking ₹2,400 profit instead of ₹5,500.\nFor the premium, based on your scenarios:\nBearish Scenario (Price drops below ₹1724): Consider purchasing the ₹1,720 put option at ₹14.05 or the ₹1,730 put option at ₹19.00. If the price drops further, these premiums will likely increase.\nBullish Scenario (Price holds ₹1724 and breaks ₹1735): Consider purchasing the ₹1,730 call option at ₹16.80 or the ₹1,740 call option at ₹12.60. These call premiums will benefit if the price moves upward towards ₹1745-₹1750.\nSucess next day .(Bearish)"
+  },
+  {
+    "date": "2024-10-22",
+    "stock": "TITAN",
+    "volumeMin": 101623,
+    "entryPrice": 43.35,
+    "decision": "Buy",
+    "stopLoss": 34.68,
+    "target": 60.69,
+    "premium": "3350",
+    "putCall": "Put",
+    "success": "Yes",
+    "remark": "Today, the ₹3,350 put option at ₹43.35 would have been ideal when Titan broke support. Always wait for confirmation, such as breakouts or breakdowns, before entering trades.\n23/10/24 \n**Bullish Scenario**: If ₹3,350 breaks above resistance, consider the ₹3,350 call option priced at ₹35.55 (Entry Price: ₹35.55, Target: ₹63.95, Stop Loss: ₹28). **Bearish Scenario**: If ₹3,300 breaks below support, consider the ₹3,300 put option priced at ₹41.25 (Entry Price: ₹41.25, Target: ₹63, Stop Loss: ₹33).\nSucess put"
+  },
+  {
+    "date": "2024-10-23",
+    "stock": "BAJFINANCE ",
+    "volumeMin": 1306457,
+    "entryPrice": 95,
+    "decision": "Buy",
+    "stopLoss": 85,
+    "target": 105,
+    "premium": "7000",
+    "putCall": "Put",
+    "success": "Yes",
+    "remark": "\"Initially missed the bullish run, but after observing the market, I noticed a small breakout at the support level. Decided to take a 7000 put option with a premium of ₹95. With a conservative risk approach, I exited at ₹105 to secure a quick profit. The decision was based on the breakout confirmation, and the trade aligned well with the observed momentum.\""
+  }
+]

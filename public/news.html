@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latest Financial News</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>Financial News for NSE Stocks</h1>
+        <nav>
+            <a href="index.html">Go Back to Home</a>
+        </nav>
+    </header>
+
+    <!-- Search Section -->
+    <section id="search-section">
+        <input type="text" id="searchInput" placeholder="Search by stock (e.g., RELIANCE.NS)" />
+        <button id="searchButton">Search</button>
+    </section>
+
+    <!-- Scrollable News Section -->
+    <section id="news-section">
+        <h2>Top Stock News</h2>
+        <ul id="news-list">
+            <!-- News articles will be dynamically inserted here -->
+        </ul>
+    </section>
+
+    <!-- Scroll Control Buttons -->
+    <div id="scroll-buttons">
+        <button id="scrollTopButton">Scroll to Top</button>
+        <button id="scrollBottomButton">Scroll to Bottom</button>
+    </div>
+
+    <section id="saved-articles-section">
+        <h2>Saved Articles</h2>
+        <ul id="saved-articles-list">
+            <!-- Saved articles will be dynamically inserted here -->
+        </ul>
+    </section>
+
+    <script>
+        // Function to fetch news from the Python API
+        async function fetchNews(searchQuery = '') {
+            try {
+                const response = await fetch('http://localhost:5002/news');
+                const articles = await response.json();
+
+                const newsList = document.getElementById('news-list');
+                newsList.innerHTML = ''; // Clear existing news
+
+                // Filter articles if a search query is provided
+                const filteredArticles = articles.filter(article =>
+                    article.stock.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+
+                if (filteredArticles.length === 0) {
+                    newsList.innerHTML = "<li>No news available for the searched stock.</li>";
+                } else {
+                    filteredArticles.forEach(article => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `<h3>${article.title} - <small>(${article.stock})</small></h3><a href="${article.link}" target="_blank">Read more</a>`;
+                        // Adding a button to save the article
+                        const saveButton = document.createElement('button');
+                        saveButton.textContent = "Save Article";
+                        saveButton.classList.add('save-article-button');
+                        saveButton.addEventListener('click', () => {
+                            saveArticle(article);
+                        });
+                        listItem.appendChild(saveButton);
+                        newsList.appendChild(listItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching news:', error);
+            }
+        }
+
+        // Function to save an article to the saved articles list
+        async function saveArticle(article) {
+            try {
+                const response = await fetch('http://localhost:5002/save_article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(article),
+                });
+                if (response.ok) {
+                    alert('Article saved successfully!');
+                    fetchSavedArticles(); // Fetch saved articles again to update the list
+                } else {
+                    throw new Error('Failed to save the article');
+                }
+            } catch (error) {
+                console.error('Error saving article:', error);
+            }
+        }
+
+        // Function to delete a saved article
+        async function deleteArticle(article) {
+            try {
+                const response = await fetch('http://localhost:5002/delete_article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(article),
+                });
+                if (response.ok) {
+                    alert('Article deleted successfully!');
+                    fetchSavedArticles(); // Refresh the saved articles list
+                } else {
+                    throw new Error('Failed to delete the article');
+                }
+            } catch (error) {
+                console.error('Error deleting article:', error);
+            }
+        }
+
+        // Function to fetch saved articles from the Python API
+        async function fetchSavedArticles() {
+            try {
+                const response = await fetch('http://localhost:5002/saved_articles');
+                const savedArticles = await response.json();
+
+                const savedArticlesList = document.getElementById('saved-articles-list');
+                savedArticlesList.innerHTML = ''; // Clear existing saved articles
+
+                if (savedArticles.length === 0) {
+                    savedArticlesList.innerHTML = "<li>No saved articles available.</li>";
+                } else {
+                    savedArticles.forEach(article => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `<h3>${article.title} - <small>(${article.stock})</small></h3><a href="${article.link}" target="_blank">Read more</a>`;
+
+                        // Delete button for each saved article
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = "Delete Article";
+                        deleteButton.classList.add('delete-article-button');
+                        deleteButton.addEventListener('click', () => {
+                            deleteArticle(article);
+                        });
+
+                        listItem.appendChild(deleteButton);
+                        savedArticlesList.appendChild(listItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching saved articles:', error);
+            }
+        }
+
+        // Scroll control buttons
+        document.getElementById('scrollTopButton').addEventListener('click', () => {
+            document.getElementById('news-section').scrollTo({
+                top: 0,
+                behavior: 'smooth',
+            });
+        });
+
+        document.getElementById('scrollBottomButton').addEventListener('click', () => {
+            document.getElementById('news-section').scrollTo({
+                top: document.getElementById('news-list').scrollHeight,
+                behavior: 'smooth',
+            });
+        });
+
+        // Search functionality on button click
+        const searchButton = document.getElementById('searchButton');
+        searchButton.addEventListener('click', () => {
+            const searchQuery = document.getElementById('searchInput').value;
+            fetchNews(searchQuery);
+        });
+
+        // Trigger search when Enter key is pressed in the search input
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent the default form submission (if any)
+                searchButton.click(); // Trigger the search button click
+            }
+        });
+
+        // Fetch all news on page load
+        window.onload = () => {
+            fetchNews();
+            fetchSavedArticles(); // Fetch saved articles when the page loads
+        };
+    </script>
+</body>
+
+</html>

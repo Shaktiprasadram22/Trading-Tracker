@@ -1,0 +1,50 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Trading Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css3.css') }}">
+</head>
+<body>
+    <header>
+        <h1 class="typing">Welcome to Trading Tracker</h1>
+    </header>
+
+    <!-- Flash Messages -->
+    <div class="container flash-messages">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-warning">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="container neon-border" id="authContainer">
+        <h2>Login</h2>
+        <form id="login" class="form active" action="/login" method="POST">
+            <input type="text" class="form-control input-glow mb-3" name="contact" placeholder="Contact" required>
+            <div class="password-wrapper">
+                <input type="password" class="form-control input-glow mb-3" name="password" id="loginPassword" placeholder="Password" required>
+                <span class="toggle-password" onclick="togglePassword('loginPassword')">👁️</span>
+            </div>
+            <input type="submit" class="btn neon-button w-100" value="Login">
+        </form>
+        <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign up here</a>.</p>
+    </div>
+
+    <script>
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            passwordField.type = passwordField.type === "password" ? "text" : "password";
+        }
+    </script>
+</body>
+</html>
