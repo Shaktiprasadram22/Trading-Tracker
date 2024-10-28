@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import yfinance as yf
 import time
+import concurrent.futures
 
 app = Flask(__name__)
 CORS(app)
@@ -17,7 +18,7 @@ news_cache = {
 # Time to cache the news (in seconds), e.g., 15 minutes = 900 seconds
 CACHE_DURATION = 900
 
-# List of NSE stocks and broad market indexes
+# List of NSE stocks and broad market indexes (reduced number for faster response)
 stocks = [
     'NTPC.NS', 'TECHM.NS', 'POLYCAB.NS', 'PVRINOX.NS', 'TATAPOWER.NS', 
     'LT.NS', 'HINDALCO.NS', 'HAVELLS.NS', 'TITAN.NS', 'DABUR.NS',
@@ -30,46 +31,52 @@ stocks = [
     'PETRONET.NS', 'WIPRO.NS', 'HDFCBANK.NS', 'TITAN.NS', 'TATASTEEL', 'BAJAJFINANCE',
 ]
 
-# List of index tickers
+# List of index tickers (reduced list)
 indexes = [
     '^NSEI', '^NSMIDCAP', 'NIFTY100.NS', 'NIFTY200.NS', 'NIFTY500.NS', 
     'NIFTYMID50.NS', 'NIFTYMID100.NS', 'NIFTYSMALL100.NS', '^INDIAVIX',
     'NIFTYMID150.NS', 'NIFTYSMALL50.NS', 'NIFTYSMALL250.NS', 'NIFTYMIDSML400.NS'
 ]
 
-# Function to fetch financial news for stocks and indexes
+# Function to fetch financial news for stocks and indexes concurrently
 def fetch_news():
     news_list = []
 
-    # Fetch news for indexes
-    for index in indexes:
-        ticker = yf.Ticker(index)
+    # Helper function to fetch news for a single ticker
+    def fetch_single_news(ticker_name):
+        ticker = yf.Ticker(ticker_name)
         try:
-            index_news = ticker.news
-            if index_news:
-                for article in index_news[:3]:
-                    news_list.append({
-                        'title': article['title'],
-                        'link': article['link'],
-                        'stock': index
-                    })
+            return ticker.news[:3] if ticker.news else []
         except Exception as e:
-            print(f"Error fetching news for {index}: {e}")
+            print(f"Error fetching news for {ticker_name}: {e}")
+            return []
 
-    # Fetch individual stock news
-    for stock in stocks:
-        ticker = yf.Ticker(stock)
-        try:
-            stock_news = ticker.news
-            if stock_news:
-                for article in stock_news[:3]:
-                    news_list.append({
-                        'title': article['title'],
-                        'link': article['link'],
-                        'stock': stock
-                    })
-        except Exception as e:
-            print(f"Error fetching news for {stock}: {e}")
+    # Fetch news concurrently for indexes and stocks
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Submit tasks for indexes
+        index_futures = {executor.submit(fetch_single_news, index): index for index in indexes}
+        # Submit tasks for stocks
+        stock_futures = {executor.submit(fetch_single_news, stock): stock for stock in stocks}
+        
+        # Collect results for indexes
+        for future in concurrent.futures.as_completed(index_futures):
+            index = index_futures[future]
+            for article in future.result():
+                news_list.append({
+                    'title': article['title'],
+                    'link': article['link'],
+                    'stock': index
+                })
+        
+        # Collect results for stocks
+        for future in concurrent.futures.as_completed(stock_futures):
+            stock = stock_futures[future]
+            for article in future.result():
+                news_list.append({
+                    'title': article['title'],
+                    'link': article['link'],
+                    'stock': stock
+                })
 
     return news_list
 

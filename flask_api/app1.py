@@ -49,7 +49,7 @@ CACHE_DURATION = 900 # 15 minutes
 # Function to fetch individual stock data
 def fetch_stock_data(symbol):
     stock_info = yf.Ticker(symbol)
-    hist = stock_info.history(period="2d")  # Fetch two days of history to get yesterday’s close
+    hist = stock_info.history(period="5d")  # Change to "5d" to fetch up to 5 days of history
 
     if len(hist) >= 2:
         # Extract the last two days' close prices
@@ -74,9 +74,6 @@ def fetch_stock_data(symbol):
         }
     
     return None
-
-
-
 
 # Function to fetch and cache stock data for a specific sector
 def get_top_stock(sector_name):
@@ -143,12 +140,11 @@ def get_trending():
         return jsonify({
             'error': 'Sector not provided in the request'
         }), 400
-    #delete
 
 # Main route to render tracking.html
 @app.route('/')
 def index():
     return render_template('tracking.html')
-#checking
+
 if __name__ == '__main__':
     app.run(debug=True, port=5003)
