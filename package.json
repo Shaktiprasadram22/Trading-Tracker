@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "concurrently \"python flask_api/app.py\" \"python flask_api/app1.py\" \"python app3.py\" \"node server.js\"",
+    "start": "concurrently \"python flask_api/app.py\" \"python flask_api/app1.py\" \"python app3.py\" \"python app4.py\" \"node server.js\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

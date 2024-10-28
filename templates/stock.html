@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Search</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts for Cyber Phonk Vibe -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css3.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles4.css') }}">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Additional CSS for transition effect -->
+    <style>
+        /* Transition Effect for Stock Data Container */
+        #stockData {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        #stockData.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Stock Search Container -->
+    <div class="container text-center mt-5">
+        <h1>Stock Search</h1>
+        <div class="form-group mt-4">
+            <label for="tickerInput">Stocks Name</label>
+            <input type="text" id="tickerInput" class="form-control mb-3" placeholder="e.g., TITAN, RELIANCE"
+                onkeydown="triggerSearch(event)">
+            <button class="btn btn-primary" onclick="fetchSelectedStockData()">Search</button>
+        </div>
+    </div>
+
+    <!-- Selected Stock Data Container -->
+    <div id="stockData" class="container mt-5">
+        <h2 class="text-center">Selected Stock Data</h2>
+        <table class="table table-dark table-hover mt-3">
+            <thead>
+                <tr>
+                    <th>Stock Ticker</th>
+                    <th>Current Price</th>
+                    <th>Volume</th>
+                    <th>Today High</th>
+                    <th>Today Low</th>
+                    <th>Support</th>
+                    <th>Resistance</th>
+                </tr>
+            </thead>
+            <tbody id="stockTableBody">
+                <!-- Stock data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#stockData').hide(); // Initially hide the stock data container
+
+            // Trigger the search function on Enter key
+            function triggerSearch(event) {
+                if (event.key === "Enter") {
+                    fetchSelectedStockData();
+                }
+            }
+
+            // Fetch stock data for selected tickers
+            function fetchSelectedStockData() {
+                let tickers = $('#tickerInput').val().trim();
+
+                if (!tickers) {
+                    alert("Please enter stock tickers.");
+                    return;
+                }
+
+                // Prepare tickers
+                tickers = tickers.split(',').map(ticker => {
+                    ticker = ticker.trim().toUpperCase();
+                    return ticker.endsWith('.NS') ? ticker : `${ticker}.NS`;
+                }).join(',');
+
+                $.getJSON(`/get_selected_stock_data?tickers=${tickers}`, function (data) {
+                    $('#stockTableBody').empty();
+
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(stock => {
+                            $('#stockTableBody').append(`
+                                <tr>
+                                    <td>${stock.ticker}</td>
+                                    <td>${stock.current_price || 'N/A'}</td>
+                                    <td>${stock.volume || 'N/A'}</td>
+                                    <td>${stock.today_high || 'N/A'}</td>
+                                    <td>${stock.today_low || 'N/A'}</td>
+                                    <td>${stock.support || 'N/A'}</td>
+                                    <td>${stock.resistance || 'N/A'}</td>
+                                </tr>
+                            `);
+                        });
+                        $('#stockData').show().addClass('show');
+                    } else {
+                        alert("No valid data returned for the requested tickers.");
+                    }
+                }).fail(function () {
+                    alert('Failed to fetch data. Please try again.');
+                });
+            }
+
+            window.triggerSearch = triggerSearch; // Make triggerSearch globally accessible
+            window.fetchSelectedStockData = fetchSelectedStockData; // Make fetchSelectedStockData globally accessible
+        });
+    </script>
+</body>
+
+</html>
