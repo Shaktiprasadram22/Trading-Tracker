@@ -37,5 +37,18 @@
     "putCall": "Put",
     "success": "Yes",
     "remark": "\"Initially missed the bullish run, but after observing the market, I noticed a small breakout at the support level. Decided to take a 7000 put option with a premium of ₹95. With a conservative risk approach, I exited at ₹105 to secure a quick profit. The decision was based on the breakout confirmation, and the trade aligned well with the observed momentum.\""
+  },
+  {
+    "date": "2024-10-28",
+    "stock": "ICICI",
+    "volumeMin": 1300000,
+    "entryPrice": 9,
+    "decision": "Buy",
+    "stopLoss": 6.5,
+    "target": 20,
+    "premium": "1300",
+    "putCall": "Put",
+    "success": "Yes",
+    "remark": "Target was 20 but i exited at 12 Main thing always wait for level breakouts and scalp and out from the trade."
   }
 ]
