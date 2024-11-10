@@ -22,11 +22,11 @@ document.addEventListener("DOMContentLoaded", function () {
         remark: document.getElementById("remark").value,
       };
 
-      const editIndex = document.getElementById("editIndex").value; // This should be set when editing an entry
+      const editId = document.getElementById("editIndex").value; // ID for updating an entry
 
       // Determine the appropriate URL and HTTP method
-      const url = editIndex ? `/api/entries/${editIndex}` : "/api/entries";
-      const method = editIndex ? "PUT" : "POST";
+      const url = editId ? `/api/entries/${editId}` : "/api/entries";
+      const method = editId ? "PUT" : "POST";
 
       // Send the data to the server
       fetch(url, {
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
           alert("Entry saved successfully!");
           loadEntries(); // Reload entries to update the table
           document.getElementById("inputForm").reset(); // Reset the form
-          document.getElementById("editIndex").value = ""; // Clear the index
+          document.getElementById("editIndex").value = ""; // Clear the ID for new entries
         })
         .catch((error) => {
           console.error("Error:", error);
@@ -61,29 +61,33 @@ document.addEventListener("DOMContentLoaded", function () {
 function loadEntries() {
   fetch("/api/entries")
     .then((response) => response.json())
-    .then((entries) => {
+    .then((data) => {
+      const entries = data.entries;
       const tableBody = document
         .getElementById("summaryTable")
         .getElementsByTagName("tbody")[0];
       tableBody.innerHTML = ""; // Clear existing entries
-      entries.forEach((entry, index) => {
+      entries.forEach((entry) => {
         const row = tableBody.insertRow();
         Object.keys(entry).forEach((key) => {
-          const cell = row.insertCell();
-          cell.textContent = entry[key];
+          if (key !== "_id" && key !== "user_contact") {
+            // Exclude _id and user contact from display
+            const cell = row.insertCell();
+            cell.textContent = entry[key];
+          }
         });
         // Add action buttons
         const actionsCell = row.insertCell();
-        actionsCell.innerHTML = `<button onclick="editEntry(${index})">Edit</button>
-                                 <button onclick="deleteEntry(${index})">Delete</button>`;
+        actionsCell.innerHTML = `<button onclick="editEntry('${entry._id}')">Edit</button>
+                                 <button onclick="deleteEntry('${entry._id}')">Delete</button>`;
       });
     })
     .catch((error) => console.error("Error loading entries:", error));
 }
 
 // Function to edit an entry
-function editEntry(index) {
-  fetch(`/api/entries/${index}`)
+function editEntry(id) {
+  fetch(`/api/entries/${id}`)
     .then((response) => {
       if (!response.ok) {
         throw new Error("HTTP status " + response.status);
@@ -103,7 +107,7 @@ function editEntry(index) {
       document.getElementById("success").value = entry.success || "Yes";
       document.getElementById("remark").value = entry.remark || "";
 
-      document.getElementById("editIndex").value = index; // Set the index for update
+      document.getElementById("editIndex").value = id; // Set the ID for update
       document.getElementById("daily-input").scrollIntoView(); // Navigate to Daily Input section
     })
     .catch((error) => {
@@ -113,9 +117,9 @@ function editEntry(index) {
 }
 
 // Function to delete an entry
-function deleteEntry(index) {
+function deleteEntry(id) {
   if (confirm("Are you sure you want to delete this entry?")) {
-    fetch(`/api/entries/${index}`, {
+    fetch(`/api/entries/${id}`, {
       method: "DELETE",
     })
       .then((response) => {
@@ -131,12 +135,14 @@ function deleteEntry(index) {
   }
 }
 
+// Analyze success rate
 document
   .getElementById("analyzeSuccessRate")
   .addEventListener("click", function () {
     fetch("/api/entries")
       .then((response) => response.json())
-      .then((entries) => {
+      .then((data) => {
+        const entries = data.entries;
         let totalEntries = entries.length;
         let successfulEntries = entries.filter(
           (entry) => entry.success === "Yes"

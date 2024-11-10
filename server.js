@@ -2,17 +2,24 @@ const express = require("express");
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const path = require("path");
-const fs = require("fs");
 const cors = require("cors");
+const { MongoClient, ObjectId } = require("mongodb");
 
 const app = express();
 const PORT = 3000;
-const dataFilePath = path.join(__dirname, "data.json");
+const dbUrl = "mongodb://localhost:27017";
+const dbName = "trading_tracker_db";
+const client = new MongoClient(dbUrl, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-// Enable CORS, allowing requests from the specified origin
+let db, entriesCollection;
+
+// Enable CORS, allowing requests from specific origins
 app.use(
   cors({
-    origin: "http://127.0.0.1:5000",
+    origin: ["http://127.0.0.1:5000", "http://localhost:5000"], // Include additional origins if needed
     credentials: true,
   })
 );
@@ -23,7 +30,7 @@ app.use(
     secret: "522cf0143346652762d42387e84abe7a",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // Use `secure: true` in production with HTTPS
+    cookie: { secure: process.env.NODE_ENV === "production" }, // Use secure cookies in production
   })
 );
 
@@ -33,6 +40,16 @@ app.use(express.static("public"));
 // Parse JSON bodies
 app.use(bodyParser.json());
 
+// Initialize MongoDB connection and collections
+client
+  .connect()
+  .then(() => {
+    db = client.db(dbName);
+    entriesCollection = db.collection("entries");
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => console.log("MongoDB connection error:", err));
+
 // Authentication check middleware
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.user) {
@@ -41,15 +58,6 @@ function isAuthenticated(req, res, next) {
     res.redirect("http://127.0.0.1:5000/login"); // Redirect to login if not authenticated
   }
 }
-
-// Apply authentication check globally except for allowed paths
-app.use((req, res, next) => {
-  if (["/login", "/set-session"].includes(req.path) || req.session.user) {
-    next();
-  } else {
-    res.redirect("http://127.0.0.1:5000/login");
-  }
-});
 
 // Root route - always redirect to the login page
 app.get("/", (req, res) => {
@@ -68,7 +76,8 @@ app.get("/login", (req, res) => {
 
 // Route for setting the session after login
 app.get("/set-session", (req, res) => {
-  req.session.user = { contact: "user_contact" }; // Simulate a user session
+  const userContact = req.query.user;
+  req.session.user = userContact; // Store the user in session
   res.redirect("/index");
 });
 
@@ -84,82 +93,77 @@ app.get("/logout", (req, res) => {
   });
 });
 
-// Function to load and save data
-function loadEntries() {
+// API routes for user-specific data operations
+app.get("/api/entries", isAuthenticated, async (req, res) => {
   try {
-    const fileData = fs.readFileSync(dataFilePath, "utf8");
-    return JSON.parse(fileData);
-  } catch (err) {
-    console.error("Error reading data file:", err);
-    return [];
-  }
-}
-
-function saveEntries(entries) {
-  try {
-    const data = JSON.stringify(entries, null, 2);
-    fs.writeFileSync(dataFilePath, data, "utf8");
-  } catch (err) {
-    console.error("Error writing to data file:", err);
-    throw err;
-  }
-}
-
-// API routes for data operations
-app.get("/api/entries", isAuthenticated, (req, res) => {
-  res.json(loadEntries());
-});
-
-app.post("/api/entries", isAuthenticated, (req, res) => {
-  const entries = loadEntries();
-  entries.push(req.body);
-  try {
-    saveEntries(entries);
-    res.status(201).json({ message: "Entry added successfully." });
+    const userContact = req.session.user;
+    const entries = await entriesCollection
+      .find({ user_contact: userContact })
+      .toArray();
+    res.json({ entries });
   } catch (error) {
-    res.status(500).json({ error: "Failed to save the entry" });
+    console.error("Error fetching entries:", error);
+    res.status(500).json({ error: "Failed to fetch entries" });
   }
 });
 
-app.get("/api/entries/:index", isAuthenticated, (req, res) => {
-  const index = parseInt(req.params.index);
-  const entries = loadEntries();
-  if (index >= 0 && index < entries.length) {
-    res.json(entries[index]);
-  } else {
-    res.status(404).json({ error: "Entry not found" });
+app.post("/api/entries", isAuthenticated, async (req, res) => {
+  try {
+    const userContact = req.session.user;
+    const newEntry = req.body;
+    newEntry.user_contact = userContact; // Associate entry with user
+    await entriesCollection.insertOne(newEntry);
+    res.status(201).json({ message: "Entry added successfully" });
+  } catch (error) {
+    console.error("Error adding entry:", error);
+    res.status(500).json({ error: "Failed to add entry" });
   }
 });
 
-app.put("/api/entries/:index", isAuthenticated, (req, res) => {
-  const index = parseInt(req.params.index);
-  let entries = loadEntries();
-  if (index >= 0 && index < entries.length) {
-    entries[index] = req.body;
-    try {
-      saveEntries(entries);
-      res.json({ message: "Entry updated successfully." });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to update the entry" });
+// Update an entry
+app.put("/api/entries/:id", isAuthenticated, async (req, res) => {
+  try {
+    const userContact = req.session.user;
+    const entryId = req.params.id;
+    const updatedEntry = req.body;
+
+    const result = await entriesCollection.updateOne(
+      { _id: new ObjectId(entryId), user_contact: userContact },
+      { $set: updatedEntry }
+    );
+
+    if (result.matchedCount === 0) {
+      return res
+        .status(404)
+        .json({ message: "Entry not found or not authorized" });
     }
-  } else {
-    res.status(404).json({ error: "Entry not found" });
+    res.json({ message: "Entry updated successfully" });
+  } catch (error) {
+    console.error("Error updating entry:", error);
+    res.status(500).json({ error: "Failed to update entry" });
   }
 });
 
-app.delete("/api/entries/:index", isAuthenticated, (req, res) => {
-  const index = parseInt(req.params.index);
-  let entries = loadEntries();
-  if (index >= 0 && index < entries.length) {
-    entries.splice(index, 1);
-    try {
-      saveEntries(entries);
-      res.json({ message: "Entry deleted successfully." });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete the entry" });
+// Delete an entry
+app.delete("/api/entries/:id", isAuthenticated, async (req, res) => {
+  try {
+    const userContact = req.session.user;
+    const entryId = req.params.id;
+
+    const result = await entriesCollection.deleteOne({
+      _id: new ObjectId(entryId),
+      user_contact: userContact,
+    });
+
+    if (result.deletedCount === 0) {
+      return res
+        .status(404)
+        .json({ message: "Entry not found or not authorized" });
     }
-  } else {
-    res.status(404).json({ error: "Entry not found" });
+    res.json({ message: "Entry deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting entry:", error);
+    res.status(500).json({ error: "Failed to delete entry" });
   }
 });
 
@@ -174,7 +178,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal Server Error" });
 });
 
-//Start the server
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

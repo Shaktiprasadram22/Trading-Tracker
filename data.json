@@ -50,5 +50,44 @@
     "putCall": "Put",
     "success": "Yes",
     "remark": "Target was 20 but i exited at 12 Main thing always wait for level breakouts and scalp and out from the trade."
+  },
+  {
+    "date": "2024-10-29",
+    "stock": "ICICIBANK",
+    "volumeMin": 1300000,
+    "entryPrice": 9,
+    "decision": "Buy",
+    "stopLoss": 7,
+    "target": 15,
+    "premium": "1320",
+    "putCall": "Call",
+    "success": "Yes",
+    "remark": "I decided to wait for the small breakout and it worked for me ullish: Above ₹1320, take ₹1320 Call, target ₹15, stop loss ₹5.50."
+  },
+  {
+    "date": "2024-10-30",
+    "stock": "MARUTI ",
+    "volumeMin": 1200000,
+    "entryPrice": 90103,
+    "decision": "Buy",
+    "stopLoss": 80,
+    "target": 161,
+    "premium": "11500",
+    "putCall": "Call",
+    "success": "Yes",
+    "remark": "Patience. "
+  },
+  {
+    "date": "2024-10-31",
+    "stock": "MARUTI",
+    "volumeMin": 832000,
+    "entryPrice": 80,
+    "decision": "Buy",
+    "stopLoss": 65,
+    "target": 120,
+    "premium": "11200",
+    "putCall": "Put",
+    "success": "Yes",
+    "remark": "It was a early night Decision by seeing the Trendline and Strong Support i choosed this premium\n"
   }
 ]
